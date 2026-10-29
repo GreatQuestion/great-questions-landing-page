@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Great Questions</title>
+  <meta name="description" content="A Mac app that reads your team's Slack, Linear, and GitHub and surfaces the questions worth researching. A Great Question prototype.">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+  <style>
+    /* Matches greatquestion.com (Oct 2026): Lunar surface, Void ink, square controls, one blue. */
+    :root {
+      --brand: #266bd8;
+      --brand-text: #1f5bb9;
+      --brand-foreground: #ffffff;
+      --background: #fefefe;
+      --surface-2: #f7f9fc;
+      --foreground: #060b14;
+      --heading: #161b25;
+      --line: #edeff3;
+      --line-strong: #e4e7ec;
+      --ink-85: color-mix(in oklab, var(--foreground) 85%, transparent);
+      --ink-70: color-mix(in oklab, var(--foreground) 70%, transparent);
+      --ink-55: color-mix(in oklab, var(--foreground) 55%, transparent);
+      --ink-10: color-mix(in oklab, var(--foreground) 10%, transparent);
+      --font-heading: "Newsreader", ui-serif, Georgia, serif;
+      --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      --gutter: clamp(16px, 5vw, 40px);
+      --max: 1160px;
+    }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--foreground);
+      font: 400 16px/1.5 var(--font-body);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
+
+    .eyebrow {
+      font: 500 12.5px/1 var(--font-mono);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--brand-text);
+      margin: 0 0 20px;
+    }
+    h1, h2 { font-family: var(--font-heading); font-weight: 400; color: var(--heading); margin: 0; }
+    h1 { font-size: clamp(38px, 5.6vw, 60px); line-height: 1.05; letter-spacing: -0.025em; }
+    h2 { font-size: clamp(30px, 4vw, 47px); line-height: 1.06; letter-spacing: -0.015em; }
+
+    /* Nav */
+    .nav {
+      position: sticky; top: 0; z-index: 10;
+      background: color-mix(in oklab, var(--background) 88%, transparent);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav .wrap { display: flex; justify-content: space-between; align-items: center; height: 64px; }
+    .nav img { width: 120px; height: auto; display: block; }
+    .nav .tag {
+      font: 500 11px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--ink-55);
+      border: 1px solid var(--line-strong); padding: 7px 9px;
+    }
+
+    /* Hero */
+    p { text-wrap: pretty; }
+    .hero { text-align: center; padding: clamp(32px, 4vw, 52px) 0 0; }
+    .hero .eyebrow { margin-bottom: 16px; }
+    .hero h1 { max-width: 22ch; margin: 0 auto 18px; text-wrap: balance; }
+    .lede {
+      font-size: clamp(17px, 1.8vw, 19px); line-height: 1.55;
+      color: var(--ink-70);
+      max-width: 72ch; margin: 0 auto 24px;
+    }
+    .hero .lede { text-wrap: balance; margin-bottom: 16px; }
+    .tagline {
+      font: 400 clamp(20px, 2.2vw, 24px)/1.3 var(--font-heading);
+      color: var(--heading);
+      letter-spacing: -0.01em;
+      margin: 0 auto 28px;
+    }
+
+    /* Soft highlight on "great questions", a nod to the name */
+    .lede .gq {
+      white-space: nowrap;
+      color: var(--heading);
+      padding: 1px 4px;
+      margin: 0 -1px;
+      background: color-mix(in oklab, var(--brand) 12%, transparent);
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      height: 48px; padding: 0 22px;
+      font: 500 15px/1 var(--font-body);
+      text-decoration: none;
+      border: 1px solid var(--line-strong);
+      color: var(--heading);
+      background: var(--background);
+      transition: background-color .15s, border-color .15s;
+    }
+    .btn:hover { background: var(--surface-2); }
+    .btn-primary { background: var(--brand); border-color: var(--brand); color: var(--brand-foreground); }
+    .btn-primary:hover { background: #1f5bb9; border-color: #1f5bb9; }
+    .btn svg { width: 16px; height: 16px; flex: none; }
+    .meta { font-size: 14px; color: var(--ink-55); margin: 14px 0 0; }
+
+    /* Demo video: full container width, lifted off the page with a soft shadow */
+    .stage {
+      position: relative;
+      margin-top: clamp(32px, 4vw, 44px);
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--surface-2);
+      box-shadow:
+        0 1px 2px rgba(6, 11, 20, .05),
+        0 24px 64px -24px rgba(6, 11, 20, .22);
+    }
+    .stage video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; }
+    .stage::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background: color-mix(in oklab, var(--foreground) 14%, transparent);
+      transition: opacity .25s;
+    }
+    .stage.playing::after { opacity: 0; }
+    .play {
+      position: absolute; left: 50%; top: 26%; z-index: 1;
+      transform: translate(-50%, -50%);
+      display: inline-flex; align-items: center; gap: 12px;
+      height: 56px; padding: 0 22px 0 10px;
+      font: 500 15px/1 var(--font-body);
+      color: var(--heading);
+      background: var(--background);
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(6, 11, 20, .06), 0 16px 40px -16px rgba(6, 11, 20, .35);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .play:hover {
+      transform: translate(-50%, -50%) scale(1.03);
+      box-shadow: 0 1px 2px rgba(6, 11, 20, .06), 0 20px 48px -16px rgba(6, 11, 20, .4);
+    }
+    .play .icon {
+      display: grid; place-items: center;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--brand); color: var(--brand-foreground);
+    }
+    .play .icon svg { width: 12px; height: 12px; margin-left: 2px; }
+    .play .len { color: var(--ink-55); font-weight: 400; }
+    .stage.playing .play { display: none; }
+
+    section { padding: clamp(72px, 10vw, 120px) 0 0; }
+    .section-head { margin-bottom: 40px; max-width: 720px; }
+    .section-head h2 { margin-bottom: 16px; }
+    .section-head p:not(.eyebrow) { margin: 0; font-size: 18px; color: var(--ink-70); }
+
+    /* Install */
+    .steps {
+      list-style: none; margin: 0; padding: 0;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+    .steps li { background: var(--surface-2); border: 1px solid var(--line); padding: 28px 24px 32px; }
+    .steps .n { font: 500 12.5px/1 var(--font-mono); letter-spacing: 0.12em; color: var(--ink-55); display: block; margin-bottom: 20px; }
+    .steps h3 { font: 400 24px/1.2 var(--font-heading); color: var(--heading); letter-spacing: -0.01em; margin: 0 0 8px; }
+    .steps p { margin: 0; color: var(--ink-70); }
+    .needs { color: var(--ink-55); margin: 24px 0 0; max-width: 72ch; }
+
+    /* FAQ */
+    .faq { border-top: 1px solid var(--ink-10); max-width: 820px; }
+    .faq details { border-bottom: 1px solid var(--ink-10); }
+    .faq summary {
+      list-style: none; cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center; gap: 24px;
+      padding: 24px 0;
+      font: 500 18px/1.4 var(--font-body); color: var(--foreground);
+    }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after {
+      content: ""; flex: none; width: 10px; height: 10px;
+      border-right: 1.5px solid var(--ink-55); border-bottom: 1.5px solid var(--ink-55);
+      transform: rotate(45deg) translate(-2px, -2px);
+      transition: transform .2s;
+    }
+    .faq details[open] summary::after { transform: rotate(225deg) translate(-2px, -2px); }
+    .faq .answer { padding: 0 0 28px; font-size: 17px; color: var(--ink-85); max-width: 68ch; }
+    .faq .answer p { margin: 0 0 12px; }
+    .faq .answer ol { margin: 0 0 12px; padding-left: 22px; }
+    .faq .answer li { margin-bottom: 6px; }
+    .faq .answer code {
+      font: 400 13.5px/1.5 var(--font-mono);
+      background: var(--surface-2); border: 1px solid var(--line); padding: 2px 6px;
+      word-break: break-all;
+    }
+
+    footer {
+      margin-top: clamp(80px, 11vw, 128px);
+      background: var(--surface-2);
+      border-top: 1px solid var(--line);
+      padding: 40px 0;
+      font-size: 14px; color: var(--ink-55);
+    }
+    footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    footer a { text-decoration: none; }
+    footer a:hover { color: var(--foreground); }
+
+    :focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+
+    @media (max-width: 820px) {
+      .steps { grid-template-columns: 1fr; }
+    }
+    .play { white-space: nowrap; }
+    @media (max-width: 480px) {
+      .btn { width: 100%; }
+      .play { top: 50%; height: 48px; padding: 0 18px 0 8px; font-size: 14px; gap: 10px; }
+      .play .icon { width: 32px; height: 32px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="nav">
+    <div class="wrap">
+      <img src="assets/logo.svg" alt="Great Question">
+      <span class="tag">Prototype</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div class="wrap">
+        <p class="eyebrow">Great Questions for Mac</p>
+        <h1>The questions worth researching, found for you.</h1>
+        <p class="lede">Your team debates product decisions in Slack, Linear, and GitHub every day. These are <span class="gq">great questions</span> worth getting right. Now you can scan those threads each morning, pull out the assumptions worth testing, and know the fastest way to get signal.</p>
+        <p class="tagline">From “I think” to “we know” in a few clicks.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="https://github.com/GreatQuestion/great-questions-landing-page/releases/latest/download/Great-Questions-mac.zip">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2v8.5M4.5 7 8 10.5 11.5 7M2.5 13.5h11"/></svg>
+            Download for Mac
+          </a>
+          <a class="btn" href="#install">How to install</a>
+        </div>
+        <p class="meta">Version 0.1 · Apple silicon · 4 MB</p>
+
+        <div class="stage" id="demo">
+          <video src="assets/demo.mp4" poster="assets/poster.jpg" playsinline preload="metadata" aria-label="Great Questions demo"></video>
+          <button class="play" type="button">
+            <span class="icon"><svg viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><path d="M3 1.5v11l9-5.5z"/></svg></span>
+            See it in action <span class="len">0:22</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <section id="install">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Install</p>
+          <h2>Set up in about five minutes.</h2>
+          <p>It runs on your Mac, through the Claude app you already use.</p>
+        </div>
+        <ol class="steps">
+          <li>
+            <span class="n">01</span>
+            <h3>Download and unzip</h3>
+            <p>Drag Great Questions into your Applications folder.</p>
+          </li>
+          <li>
+            <span class="n">02</span>
+            <h3>Allow it to open</h3>
+            <p>It's an unsigned prototype, so macOS will block it the first time. <a href="#faq-unsigned">Here's how to open it.</a></p>
+          </li>
+          <li>
+            <span class="n">03</span>
+            <h3>Follow the setup</h3>
+            <p>The app installs its Claude plugin, checks your connections, and runs your first scan.</p>
+          </li>
+        </ol>
+        <p class="needs">You'll need a Mac with Apple silicon and the Claude desktop app, signed in. Great Questions reads from whichever of Slack, Linear, and GitHub you've connected in Claude.</p>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">FAQ</p>
+          <h2>Frequently asked questions</h2>
+        </div>
+        <div class="faq">
+          <details>
+            <summary>Does this have access to my data?</summary>
+            <div class="answer">
+              <p>No. Everything runs locally on your Mac. Great Questions works through your own Claude, and only reaches the apps you've already connected there. Nothing is stored or sent anywhere else.</p>
+            </div>
+          </details>
+          <details>
+            <summary>Will it post or change anything in Slack, Linear, or GitHub?</summary>
+            <div class="answer">
+              <p>No. The scan only reads. It never posts, comments, reacts, or edits. Anything beyond reading, like drafting a study, only happens when you click a button on a card.</p>
+            </div>
+          </details>
+          <details id="faq-unsigned">
+            <summary>macOS says it can't open the app. What do I do?</summary>
+            <div class="answer">
+              <p>That's expected. This prototype isn't signed with an Apple developer certificate yet, so macOS blocks it the first time. To open it:</p>
+              <ol>
+                <li>Open Great Questions from Applications. When macOS blocks it, click Done.</li>
+                <li>Open System Settings, then Privacy &amp; Security.</li>
+                <li>Scroll down to the message about Great Questions and click Open Anyway.</li>
+                <li>Confirm with your password or Touch ID.</li>
+              </ol>
+              <p>You only need to do this once. If you're comfortable in Terminal, this does the same thing: <code>xattr -dr com.apple.quarantine "/Applications/Great Questions.app"</code></p>
+            </div>
+          </details>
+          <details>
+            <summary>What if I haven't connected Slack, Linear, or GitHub?</summary>
+            <div class="answer">
+              <p>Great Questions skips any source that isn't connected and uses the rest. To add one, open Claude, go to Customize, then Connectors. It's picked up on the next scan.</p>
+            </div>
+          </details>
+          <details>
+            <summary>When does it look for new questions?</summary>
+            <div class="answer">
+              <p>Every weekday at 8am, while the Claude app is open. If Claude was closed, the scan runs the next time you open it. You can also run one any time from the app.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>Great Questions is a Great Question prototype.</span>
+      <a href="https://greatquestion.com">greatquestion.com</a>
+    </div>
+  </footer>
+
+  <script>
+    // Big play button first, native controls once it's playing.
+    const stage = document.querySelector('.stage');
+    const video = stage.querySelector('video');
+    stage.querySelector('.play').addEventListener('click', () => {
+      stage.classList.add('playing');
+      video.controls = true;
+      video.play();
+    });
+
+    // Open a FAQ item when a link points at it.
+    function openFromHash() {
+      const target = location.hash && document.querySelector(location.hash);
+      if (target && target.tagName === 'DETAILS') {
+        target.open = true;
+        target.scrollIntoView();
+      }
+    }
+    window.addEventListener('hashchange', openFromHash);
+    openFromHash();
+  </script>
+</body>
+</html>
