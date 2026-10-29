@@ -262,7 +262,7 @@
         <p class="meta">Apple silicon and Intel · 13 MB</p>
 
         <div class="stage" id="demo">
-          <video src="assets/demo.mp4" poster="assets/poster.jpg" playsinline preload="metadata" aria-label="Great Questions demo"></video>
+          <video src="assets/teaser.mp4" poster="assets/poster.jpg?v=2" playsinline preload="metadata" aria-label="Great Questions demo"></video>
           <button class="play" type="button">
             <span class="icon"><svg viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><path d="M3 1.5v11l9-5.5z"/></svg></span>
             See it in action <span class="len">0:22</span>
@@ -359,10 +359,11 @@
     // Big play button first, native controls once it's playing.
     const stage = document.querySelector('.stage');
     const video = stage.querySelector('video');
-    stage.querySelector('.play').addEventListener('click', () => {
+    stage.querySelector('.play').addEventListener('click', () => video.play());
+    // Follow the video itself, so the overlay clears however playback starts.
+    video.addEventListener('play', () => {
       stage.classList.add('playing');
       video.controls = true;
-      video.play();
     });
 
     // Open a FAQ item when a link points at it.
