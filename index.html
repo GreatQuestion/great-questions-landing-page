@@ -306,13 +306,13 @@
           <h2>Frequently asked questions</h2>
         </div>
         <div class="faq">
-          <details>
+          <details id="faq-data">
             <summary>Does this have access to my data?</summary>
             <div class="answer">
               <p>No. Everything runs locally on your Mac. Great Questions works through your own Claude, and only reaches the apps you've already connected there. Nothing is stored or sent anywhere else.</p>
             </div>
           </details>
-          <details>
+          <details id="faq-posting">
             <summary>Will it post or change anything in Slack, Linear, or GitHub?</summary>
             <div class="answer">
               <p>No. The scan only reads. It never posts, comments, reacts, or edits. Anything beyond reading, like drafting a study, only happens when you click a button on a card.</p>
@@ -331,13 +331,13 @@
               <p>You only need to do this once. If macOS says the app is damaged instead, or you're comfortable in Terminal, run this and then open it again: <code>xattr -dr com.apple.quarantine "/Applications/Great Questions.app"</code></p>
             </div>
           </details>
-          <details>
+          <details id="faq-sources">
             <summary>What if I haven't connected Slack, Linear, or GitHub?</summary>
             <div class="answer">
               <p>Great Questions skips any source that isn't connected and uses the rest. To add one, open Claude, go to Customize, then Connectors. It's picked up on the next scan.</p>
             </div>
           </details>
-          <details>
+          <details id="faq-schedule">
             <summary>When does it look for new questions?</summary>
             <div class="answer">
               <p>Every weekday at 8am, while the Claude app is open. If Claude was closed, the scan runs the next time you open it. You can also run one any time from the app.</p>
@@ -375,6 +375,14 @@
     }
     window.addEventListener('hashchange', openFromHash);
     openFromHash();
+
+    // Opening a FAQ item puts its link in the address bar, so it can be copied and shared.
+    document.querySelectorAll('.faq details[id]').forEach((item) => {
+      item.addEventListener('toggle', () => {
+        if (item.open) history.replaceState(null, '', '#' + item.id);
+        else if (location.hash === '#' + item.id) history.replaceState(null, '', location.pathname + location.search);
+      });
+    });
   </script>
 </body>
 </html>
