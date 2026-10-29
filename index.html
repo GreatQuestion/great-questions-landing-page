@@ -253,13 +253,13 @@
         <p class="lede">Your team debates product decisions in Slack, Linear, and GitHub every day. These are <span class="gq">great questions</span> worth getting right. Now you can scan those threads each morning, pull out the assumptions worth testing, and know the fastest way to get signal.</p>
         <p class="tagline">From “I think” to “we know” in a few clicks.</p>
         <div class="actions">
-          <a class="btn btn-primary" href="https://github.com/GreatQuestion/great-questions-landing-page/releases/latest/download/Great-Questions-mac.zip">
+          <a class="btn btn-primary" href="https://github.com/GreatQuestion/great-questions-releases/releases/latest/download/Great-Questions.dmg">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2v8.5M4.5 7 8 10.5 11.5 7M2.5 13.5h11"/></svg>
             Download for Mac
           </a>
           <a class="btn" href="#install">How to install</a>
         </div>
-        <p class="meta">Version 0.1 · Apple silicon · 4 MB</p>
+        <p class="meta">Apple silicon and Intel · 13 MB</p>
 
         <div class="stage" id="demo">
           <video src="assets/demo.mp4" poster="assets/poster.jpg" playsinline preload="metadata" aria-label="Great Questions demo"></video>
@@ -281,8 +281,8 @@
         <ol class="steps">
           <li>
             <span class="n">01</span>
-            <h3>Download and unzip</h3>
-            <p>Drag Great Questions into your Applications folder.</p>
+            <h3>Download and open</h3>
+            <p>Open the download and drag Great Questions into your Applications folder.</p>
           </li>
           <li>
             <span class="n">02</span>
@@ -295,7 +295,7 @@
             <p>The app installs its Claude plugin, checks your connections, and runs your first scan.</p>
           </li>
         </ol>
-        <p class="needs">You'll need a Mac with Apple silicon and the Claude desktop app, signed in. Great Questions reads from whichever of Slack, Linear, and GitHub you've connected in Claude.</p>
+        <p class="needs">You'll need a Mac and the Claude desktop app, signed in. Great Questions reads from whichever of Slack, Linear, and GitHub you've connected in Claude.</p>
       </div>
     </section>
 
@@ -328,7 +328,7 @@
                 <li>Scroll down to the message about Great Questions and click Open Anyway.</li>
                 <li>Confirm with your password or Touch ID.</li>
               </ol>
-              <p>You only need to do this once. If you're comfortable in Terminal, this does the same thing: <code>xattr -dr com.apple.quarantine "/Applications/Great Questions.app"</code></p>
+              <p>You only need to do this once. If macOS says the app is damaged instead, or you're comfortable in Terminal, run this and then open it again: <code>xattr -dr com.apple.quarantine "/Applications/Great Questions.app"</code></p>
             </div>
           </details>
           <details>
